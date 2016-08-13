@@ -20,5 +20,7 @@ from rest import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.Index.as_view()),
-    url(r'^launch/arm/?$', views.Launch.as_view()),
+    url(r'^launch/status/?$', views.LauncherStatus.as_view()),
+    url(r'^launch/arm/?$', views.Armer.as_view()),
+    url(r'^launch/disarm/?$', views.DisArmer.as_view()),
 ]
