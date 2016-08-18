@@ -1,9 +1,12 @@
 from flask import Flask, jsonify
 import logging
+from enum import Enum
 
 app = Flask(__name__)
 logging.basicConfig(filename='prl2016.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
+
+############# REST #############
 
 class Tube:
 
@@ -66,6 +69,25 @@ def disarm():
 def status():
     return jsonify(prl.serialize()), 200
 
+
+########### GPIO ############
+
+class Pin(Enum):
+    launch_1 = 8
+    launch_2 = 11
+    launch_3 = 7
+    launch_4 = 5
+    launch_5 = 12
+    launch_6 = 6
+    launch_7 = 13
+    launch_8 = 16
+    launch_9 = 19
+    launch_10 = 20
+    launch_11 = 26
+    launch_12 = 21
+
+
+########### APP #############
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
