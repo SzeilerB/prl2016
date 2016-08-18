@@ -1,6 +1,8 @@
 from flask import Flask, jsonify
+import logging
 
 app = Flask(__name__)
+logging.basicConfig(filename='prl2016.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
 
 class Tube:
@@ -43,11 +45,13 @@ prl = LaunchingSystem()
 
 @app.route('/')
 def index():
+    logging.info('INDEX')
     return "PRL2016"
 
 
 @app.route('/launch/arm', methods=['POST'])
 def arm():
+    logging.info('ARM')
     prl.armed = True
     return "System armed", 200
 
