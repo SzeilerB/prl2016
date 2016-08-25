@@ -1,12 +1,27 @@
 from flask import Flask, jsonify
 import logging
-from enum import Enum
+import RPi.GPIO as GPIO
+import time
+
+############ INIT ###########
 
 app = Flask(__name__)
 logging.basicConfig(filename='prl2016.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+GPIO.setmode(GPIO.BCM)
 
+pins = {'launch_1': 8,
+        'launch_2': 11,
+        'launch_3': 7,
+        'launch_4': 5,
+        'launch_5': 12,
+        'launch_6': 6,
+        'launch_7': 13,
+        'launch_8': 16,
+        'launch_9': 19,
+        'launch_10': 20,
+        'launch_11': 26,
+        'launch_12': 21}
 
-############# REST #############
 
 class Tube:
 
@@ -43,7 +58,14 @@ class LaunchingSystem:
         }
 
 
+for v in pins.values():
+    GPIO.setup(v, GPIO.OUT)
+    GPIO.output(v, GPIO.LOW)
+
+
 prl = LaunchingSystem()
+
+############# REST #############
 
 
 @app.route('/')
@@ -61,6 +83,7 @@ def arm():
 
 @app.route('/launch/disarm', methods=['POST'])
 def disarm():
+    logging.info('DISARM')
     prl.armed = False
     return "System disarmed", 200
 
@@ -72,19 +95,32 @@ def status():
 
 ########### GPIO ############
 
-class Pin(Enum):
-    launch_1 = 8
-    launch_2 = 11
-    launch_3 = 7
-    launch_4 = 5
-    launch_5 = 12
-    launch_6 = 6
-    launch_7 = 13
-    launch_8 = 16
-    launch_9 = 19
-    launch_10 = 20
-    launch_11 = 26
-    launch_12 = 21
+def set_pin_high(pin):
+    GPIO.output(pin, GPIO.HIGH)
+    logging.info('Pin ' + pin + ' on HIGH!')
+
+
+def set_pin_low(pin):
+    GPIO.output(pin, GPIO.LOW)
+    logging.info('Pin ' + pin + ' on LOW!')
+
+
+def launch(rocket_id):
+    set_pin_high(pins['launch_' + str(rocket_id)])
+    time.sleep(3)
+    set_pin_low(pins['launch_' + str(rocket_id)])
+
+
+def launch_all():
+    for pin in pins.values():
+        set_pin_high(pin)
+
+    time.sleep(3)
+
+    for pin in pins.values():
+        set_pin_low(pin)
+
+    logging.info('All rockets launched!')
 
 
 ########### APP #############
