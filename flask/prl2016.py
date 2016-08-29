@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, abort
 import logging
 import RPi.GPIO as GPIO
 import time
@@ -91,6 +91,29 @@ def disarm():
 @app.route('/launch/status', methods=['GET'])
 def status():
     return jsonify(prl.serialize()), 200
+
+
+@app.route('/launch/fire', methods=['POST'])
+def fire():
+    if not request.json:
+        return "No JSON received.", 400
+    elif not prl.armed:
+        return "System is not armed!", 403
+    else:
+        for r in request.json:
+            launch(r)
+
+    return "Given rockets launched", 200
+
+
+@app.route('launch/fire/all', methods=['POST'])
+def fire_all():
+    if not prl.armed:
+        return "System is not armed!", 403
+    else:
+        launch_all()
+
+    return "All rockets launched!", 200
 
 
 ########### GPIO ############
