@@ -9,6 +9,8 @@ app = Flask(__name__)
 logging.basicConfig(filename='prl2016.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 GPIO.setmode(GPIO.BCM)
 
+LAUNCH_WAIT_TIME = 3
+
 pins = {'launch_1': 8,
         'launch_2': 11,
         'launch_3': 7,
@@ -100,13 +102,13 @@ def fire():
     elif not prl.armed:
         return "System is not armed!", 403
     else:
-        for r in request.json:
+        for r in request.json["tubeIds"]:
             launch(r)
 
     return "Given rockets launched", 200
 
 
-@app.route('launch/fire/all', methods=['POST'])
+@app.route('/launch/fire/all', methods=['POST'])
 def fire_all():
     if not prl.armed:
         return "System is not armed!", 403
@@ -120,17 +122,17 @@ def fire_all():
 
 def set_pin_high(pin):
     GPIO.output(pin, GPIO.HIGH)
-    logging.info('Pin ' + pin + ' on HIGH!')
+    logging.info('Pin ' + str(pin) + ' on HIGH!')
 
 
 def set_pin_low(pin):
     GPIO.output(pin, GPIO.LOW)
-    logging.info('Pin ' + pin + ' on LOW!')
+    logging.info('Pin ' + str(pin) + ' on LOW!')
 
 
 def launch(rocket_id):
     set_pin_high(pins['launch_' + str(rocket_id)])
-    time.sleep(3)
+    time.sleep(LAUNCH_WAIT_TIME)
     set_pin_low(pins['launch_' + str(rocket_id)])
 
 
@@ -138,7 +140,7 @@ def launch_all():
     for pin in pins.values():
         set_pin_high(pin)
 
-    time.sleep(3)
+    time.sleep(LAUNCH_WAIT_TIME)
 
     for pin in pins.values():
         set_pin_low(pin)
@@ -149,4 +151,4 @@ def launch_all():
 ########### APP #############
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(debug=True, host='0.0.0.0', port=8000)
