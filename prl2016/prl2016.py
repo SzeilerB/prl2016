@@ -1,10 +1,7 @@
 import logging
 import time
-from gpio import launch, launch_all, relay_test, gpio_init, move_stop, move_ccw, move_cw, move_down, move_up
+from gpio import GPIOHandler
 from flask import Flask, jsonify, request
-
-############ INIT ###########
-
 
 MOVEMENT_TEST_DELAY = 2
 
@@ -13,14 +10,14 @@ class Tube:
 
     def __init__(self, _id):
         self.loaded = False
-        self.id = _id
+        self._id = _id
 
     def __str__(self):
-        return str(self.loaded) + str(self.id)
+        return str(self.loaded) + str(self._id)
 
     def serialize(self):
         return {
-            'id': self.id,
+            'id': self._id,
             'loaded': self.loaded,
         }
 
@@ -31,7 +28,7 @@ class LaunchingSystem:
         self.armed = False
         self.tubes = []
 
-        for i in range(20):
+        for i in range(1, 13):
             self.tubes.append(Tube(i))
 
     def __str__(self):
@@ -45,9 +42,6 @@ class LaunchingSystem:
 
 prl = LaunchingSystem()
 app = Flask(__name__)
-
-
-############# REST #############
 
 
 @app.route('/')
@@ -83,7 +77,7 @@ def fire():
         return "System is not armed!", 403
     else:
         for r in request.json:
-            launch(r)
+            gpioHandler.launch(r)
 
     return "Given rockets launched", 200
 
@@ -93,14 +87,14 @@ def fire_all():
     if not prl.armed:
         return "System is not armed!", 403
     else:
-        launch_all()
+        gpioHandler.launch_all()
 
     return "All rockets launched!", 200
 
 
 @app.route('/test', methods=['GET'])
 def _relay_test():
-    relay_test()
+    gpioHandler.relay_test()
     return "Test finished", 200
 
 
@@ -119,47 +113,47 @@ def start_movement():
         return "Bad request, opposite directions", 400
 
     if 'cw' in request.json:
-        move_cw()
+        gpioHandler.move_cw()
 
     if 'ccw' in request.json:
-        move_ccw()
+        gpioHandler.move_ccw()
 
     if 'up' in request.json:
-        move_up()
+        gpioHandler.move_up()
 
     if 'down' in request.json:
-        move_down()
+        gpioHandler.move_down()
 
     return "Moving in given direction", 200
 
 
 @app.route('/move/stop', methods=['POST'])
 def stop_movement():
-    move_stop()
+    gpioHandler.move_stop()
     return "Movement stopped", 200
 
 
 @app.route('/move/test', methods=['POST'])
 def test_movement():
-    move_up()
+    gpioHandler.move_up()
     time.sleep(MOVEMENT_TEST_DELAY)
-    move_stop()
+    gpioHandler.move_stop()
 
-    move_down()
+    gpioHandler.move_down()
     time.sleep(MOVEMENT_TEST_DELAY)
-    move_stop()
+    gpioHandler.move_stop()
 
-    move_ccw()
+    gpioHandler.move_ccw()
     time.sleep(MOVEMENT_TEST_DELAY)
-    move_stop()
+    gpioHandler.move_stop()
 
-    move_cw()
+    gpioHandler.move_cw()
     time.sleep(MOVEMENT_TEST_DELAY*2)
-    move_stop()
+    gpioHandler.move_stop()
 
-    move_ccw()
+    gpioHandler.move_ccw()
     time.sleep(MOVEMENT_TEST_DELAY)
-    move_stop()
+    gpioHandler.move_stop()
 
     return "Movement test finished", 200
 
@@ -168,6 +162,6 @@ def test_movement():
 
 if __name__ == '__main__':
     logging.basicConfig(filename='prl2016.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-    gpio_init()
-
+    gpioHandler = GPIOHandler()
+    gpioHandler.gpio_init()
     app.run(debug=True, host='0.0.0.0', port=8000)
