@@ -21,8 +21,8 @@ output_pins = {
         'launch_12': 21,
         'move_output_up': 25,
         'move_output_down': 9,
-        'move_output_left': 10,
-        'move_output_right': 24}
+        'move_output_ccw': 10,
+        'move_output_cw': 24}
 
 input_pins = {
         'move_input_hor_1': 23,
@@ -73,8 +73,31 @@ def launch_all():
     logging.info('All rockets launched!')
 
 
+def move_cw():
+    set_pin_high(output_pins['move_output_cw'])
+
+
+def move_ccw():
+    set_pin_high(output_pins['move_output_ccw'])
+
+
+def move_up():
+    set_pin_high(output_pins['move_output_up'])
+
+
+def move_down():
+    set_pin_high(output_pins['move_output_down'])
+
+
+def move_stop():
+    set_pin_low(output_pins['move_output_cw'])
+    set_pin_low(output_pins['move_output_ccw'])
+    set_pin_low(output_pins['move_output_up'])
+    set_pin_low(output_pins['move_output_down'])
+
+
 def relay_test():
     for pin in output_pins:
-        set_pin_high(pin)
+        set_pin_high(output_pins[pin])
         time.sleep(RELAY_TEST_DELAY)
-        set_pin_low(pin)
+        set_pin_low(output_pins[pin])
