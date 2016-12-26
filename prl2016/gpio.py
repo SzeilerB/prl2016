@@ -9,7 +9,7 @@ class GPIOHandler:
         pass
 
     LAUNCH_WAIT_TIME = 3
-    RELAY_TEST_DELAY = 0.2
+    RELAY_TEST_DELAY = 0.3
 
     output_pins = {
         'launch_1': 8,
@@ -82,7 +82,19 @@ class GPIOHandler:
     def move_down(self):
         self.set_pin_high(self.output_pins['move_output_down'])
 
-    def move_stop(self):
+    def stop_cw(self):
+        self.set_pin_low(self.output_pins['move_output_cw'])
+
+    def stop_ccw(self):
+        self.set_pin_low(self.output_pins['move_output_ccw'])
+
+    def stop_up(self):
+        self.set_pin_low(self.output_pins['move_output_up'])
+
+    def stop_down(self):
+        self.set_pin_low(self.output_pins['move_output_down'])
+
+    def emergency_stop(self):
         self.set_pin_low(self.output_pins['move_output_cw'])
         self.set_pin_low(self.output_pins['move_output_ccw'])
         self.set_pin_low(self.output_pins['move_output_up'])
@@ -93,3 +105,4 @@ class GPIOHandler:
             self.set_pin_high(self.output_pins[pin])
             time.sleep(self.RELAY_TEST_DELAY)
             self.set_pin_low(self.output_pins[pin])
+            time.sleep(self.RELAY_TEST_DELAY)
