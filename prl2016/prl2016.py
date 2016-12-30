@@ -2,8 +2,10 @@ import logging
 import time
 from gpio import GPIOHandler
 from flask import Flask, jsonify, request
+from threading import Thread
+from ky040 import KY040Horizontal, KY040Vertical
 
-MOVEMENT_TEST_DELAY = 2
+MOVEMENT_TEST_DELAY = 1
 
 
 class Tube:
@@ -234,12 +236,28 @@ def test_movement():
 
     return "Movement test finished", 200
 
-
 ########### APP #############
 
 if __name__ == '__main__':
     logging.basicConfig(filename='prl2016.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
     gpioHandler = GPIOHandler()
     gpioHandler.gpio_init()
-    app.run(debug=True, host='0.0.0.0', port=8000)
 
+    print "egy"
+    t1 = Thread(target=gpioHandler.check_limit_switches)
+    t1.daemon = True
+
+    print "ketto"
+    t2 = Thread(target=gpioHandler.rotary_encoder_horizontal)
+    t2.daemon = True
+
+    print "harom"
+    t3 = Thread(target=gpioHandler.rotary_encoder_vertical)
+    t3.daemon = True
+
+    t1.start()
+    t2.start()
+    t3.start()
+    print "negy"
+
+    app.run(debug=True, host='0.0.0.0', port=8000)
