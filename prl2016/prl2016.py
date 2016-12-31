@@ -4,6 +4,7 @@ from gpio import GPIOHandler
 from flask import Flask, jsonify, request
 from threading import Thread
 from ky040 import KY040Horizontal, KY040Vertical
+import signal
 
 MOVEMENT_TEST_DELAY = 1
 
@@ -243,21 +244,23 @@ if __name__ == '__main__':
     gpioHandler = GPIOHandler()
     gpioHandler.gpio_init()
 
-    print "egy"
     t1 = Thread(target=gpioHandler.check_limit_switches)
     t1.daemon = True
-
-    print "ketto"
-    t2 = Thread(target=gpioHandler.rotary_encoder_horizontal)
-    t2.daemon = True
-
-    print "harom"
-    t3 = Thread(target=gpioHandler.rotary_encoder_vertical)
-    t3.daemon = True
-
     t1.start()
-    t2.start()
-    t3.start()
-    print "negy"
 
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    t2 = Thread(target=gpioHandler.moving_up_time_limit)
+    t2.daemon = True
+    t2.start()
+
+    # t2 = Thread(target=gpioHandler.rotary_encoder_horizontal)
+    # t2.daemon = True
+    #
+    # t3 = Thread(target=gpioHandler.rotary_encoder_vertical)
+    # t3.daemon = True
+
+    try:
+        app.run(debug=True, host='0.0.0.0', port=8000)
+    except KeyboardInterrupt:
+        print "Interrupt received, stopping..."
+        gpioHandler.gpio_init()
+        gpioHandler.gpio_cleanup()

@@ -14,7 +14,7 @@ class KY040Vertical:
         self.vertical_turn = 0
 
     def start(self):
-        GPIO.add_event_detect(self.clockPin, GPIO.FALLING, callback=self.clock_callback, bouncetime=30)
+        GPIO.add_event_detect(self.clockPin, GPIO.FALLING, callback=self.clock_callback, bouncetime=100)
 
     def stop(self):
         GPIO.remove_event_detect(self.clockPin)
@@ -41,7 +41,7 @@ class KY040Horizontal:
         self.horizontal_turn = 0
 
     def start(self):
-        GPIO.add_event_detect(self.clockPin, GPIO.FALLING, callback=self.clock_callback, bouncetime=30)
+        GPIO.add_event_detect(self.clockPin, GPIO.FALLING, callback=self.clock_callback, bouncetime=100)
 
     def stop(self):
         GPIO.remove_event_detect(self.clockPin)
