@@ -3,8 +3,6 @@ import time
 from gpio import GPIOHandler
 from flask import Flask, jsonify, request
 from threading import Thread
-from ky040 import KY040Horizontal, KY040Vertical
-import signal
 
 MOVEMENT_TEST_DELAY = 1
 
@@ -31,7 +29,7 @@ class LaunchingSystem:
         self.armed = False
         self.tubes = []
 
-        for i in range(1, 13):
+        for i in range(1, 11):
             self.tubes.append(Tube(i))
 
     def __str__(self):
@@ -101,9 +99,13 @@ def fire():
         return "System is not armed!", 403
     else:
         for r in request.json:
-            if prl.tubes[r-1].loaded:
-                gpioHandler.launch(r)
-                prl.tubes[r-1].loaded = False
+            if not prl.tubes[r-1].loaded:
+                return "Some of the tubes are not loaded", 403
+
+        for r in request.json:
+            prl.tubes[r-1].loaded = False
+
+        gpioHandler.launch(request.json)
 
     return "Given rockets launched", 200
 
@@ -248,9 +250,9 @@ if __name__ == '__main__':
     t1.daemon = True
     t1.start()
 
-    t2 = Thread(target=gpioHandler.moving_up_time_limit)
-    t2.daemon = True
-    t2.start()
+    # t2 = Thread(target=gpioHandler.moving_up_time_limit)
+    # t2.daemon = True
+    # t2.start()
 
     # t2 = Thread(target=gpioHandler.rotary_encoder_horizontal)
     # t2.daemon = True

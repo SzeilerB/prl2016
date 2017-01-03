@@ -12,11 +12,12 @@ class GPIOHandler:
         self.moving_ccw = False
         self.moving_cw = False
         self.moving_up_time = 0
+        self.moving_up_start = 0
 
     LAUNCH_WAIT_TIME = 1.5
     RELAY_TEST_DELAY = 0.3
-    SWITCH_CHECK_INTERVAL = 0.2
-    MOVING_UP_LIMIT = 500
+    SWITCH_REVERSE_MOVEMENT = 0.2
+    MOVING_UP_LIMIT = 1300
 
     output_pins = {
         'launch_1': 8,
@@ -69,10 +70,14 @@ class GPIOHandler:
         GPIO.output(pin, GPIO.LOW)
         logging.info('Pin ' + str(pin) + ' on LOW!')
 
-    def launch(self, rocket_id):
-        self.set_pin_high(self.output_pins['launch_' + str(rocket_id)])
+    def launch(self, rockets):
+        for r in rockets:
+            self.set_pin_high(self.output_pins['launch_' + str(r)])
+
         time.sleep(self.LAUNCH_WAIT_TIME)
-        self.set_pin_low(self.output_pins['launch_' + str(rocket_id)])
+
+        for r in rockets:
+            self.set_pin_low(self.output_pins['launch_' + str(r)])
 
     def launch_all(self):
         for pin in self.output_pins.values():
@@ -98,11 +103,11 @@ class GPIOHandler:
             self.moving_ccw = True
 
     def move_up(self):
-        if not self.moving_up and ((self.time_in_millis() - self.moving_up_time) < self.MOVING_UP_LIMIT or self.moving_up_time == 0):
+        if not self.moving_up and self.get_input_sw_up() == 0:
             self.set_pin_high(self.output_pins['move_output_up'])
             # self.set_pin_high(self.output_pins['move_output_up2'])
             self.moving_up = True
-            self.moving_up_time = self.time_in_millis()
+            # self.moving_up_start = self.time_in_millis()
 
     def move_down(self):
         if not self.moving_down and self.get_input_sw_down() == 0:
@@ -160,13 +165,16 @@ class GPIOHandler:
         while True:
             if self.moving_up and self.get_input_sw_up() == 1:
                 self.stop_up()
+                self.move_down()
+                time.sleep(self.SWITCH_REVERSE_MOVEMENT)
+                self.stop_down()
 
             if self.moving_down and self.get_input_sw_down() == 1:
+                # self.moving_up_time = 0
                 self.stop_down()
                 self.move_up()
-                time.sleep(0.2)
+                time.sleep(self.SWITCH_REVERSE_MOVEMENT)
                 self.stop_up()
-                self.moving_up_time = 0
 
             if self.moving_ccw and self.get_input_sw_left() == 1:
                 self.stop_ccw()
@@ -200,7 +208,10 @@ class GPIOHandler:
 
     def moving_up_time_limit(self):
         while True:
-            if self.moving_up and (self.time_in_millis() - self.moving_up_time) >= self.MOVING_UP_LIMIT:
+            if self.moving_up:
+                self.moving_up_time = self.time_in_millis() - self.moving_up_start
+
+            if self.moving_up_time >= self.MOVING_UP_LIMIT:
                 self.stop_up()
 
             time.sleep(0.1)
